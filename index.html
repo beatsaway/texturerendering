@@ -90,6 +90,125 @@
       height: 12px;
       margin: 0;
     }
+    .shape-search-trigger {
+      padding: 0 2px;
+      margin: 0;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      font-size: 13px;
+      line-height: 1;
+      opacity: 0.85;
+      border-radius: 3px;
+    }
+    .shape-search-trigger:hover { opacity: 1; background: rgba(255, 255, 255, 0.08); }
+    .shape-search-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 12vh 16px 16px;
+      pointer-events: none;
+    }
+    .shape-search-modal[hidden] { display: none !important; }
+    .shape-search-modal:not([hidden]) { pointer-events: auto; }
+    .shape-search-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.45);
+      cursor: pointer;
+    }
+    .shape-search-dialog {
+      position: relative;
+      width: min(420px, 100%);
+      max-height: min(72vh, 520px);
+      display: flex;
+      flex-direction: column;
+      background: #1e222c;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 8px;
+      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.45);
+      color: #e4e6eb;
+      font-size: 13px;
+    }
+    .shape-search-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .shape-search-head h2 {
+      margin: 0;
+      font-size: 14px;
+      font-weight: 600;
+      color: #c8ccd4;
+    }
+    .shape-search-close {
+      padding: 2px 8px;
+      border: none;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.08);
+      color: #c8ccd4;
+      font-size: 18px;
+      line-height: 1;
+      cursor: pointer;
+    }
+    .shape-search-close:hover { background: rgba(255, 255, 255, 0.14); }
+    #shapeSearchInput {
+      margin: 10px 12px;
+      padding: 8px 10px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 6px;
+      background: #252a34;
+      color: #e4e6eb;
+      font-size: 14px;
+      outline: none;
+    }
+    #shapeSearchInput:focus { border-color: #5a7ab0; }
+    .shape-search-list {
+      overflow-y: auto;
+      flex: 1;
+      padding: 0 8px 10px;
+      min-height: 120px;
+    }
+    .shape-search-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 10px;
+      width: 100%;
+      text-align: left;
+      padding: 8px 10px;
+      margin: 2px 0;
+      border: none;
+      border-radius: 6px;
+      background: transparent;
+      color: #e4e6eb;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .shape-search-row:hover, .shape-search-row:focus {
+      background: rgba(90, 122, 176, 0.25);
+      outline: none;
+    }
+    .shape-search-row-text { flex: 1; min-width: 0; }
+    .shape-search-row-group {
+      font-size: 10px;
+      color: #7a8290;
+      white-space: nowrap;
+      max-width: 45%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .shape-search-empty {
+      padding: 24px 12px;
+      text-align: center;
+      color: #7a8290;
+      font-size: 13px;
+    }
   </style>
   <script type="importmap">
   {
@@ -142,9 +261,10 @@
         <option value="standard">Standard lit (no post)</option>
       </select>
     </div>
-    <div class="ui-field" title="Procedural or Kenney OBJ: pirate, car &amp; food kits under models/kenney-*">
-      <span class="param-lock" data-lock="shape" tabindex="0" role="button" title="Click: lock/unlock for Space randomize">Shape</span>
-      <select id="shape" aria-label="Shape">
+    <div class="ui-field" title="Mesh geometry: procedural or Kenney OBJ (pirate, car, food) under models/kenney-*">
+      <span class="param-lock" data-lock="mesh" tabindex="0" role="button" title="Click: lock/unlock for Space randomize">Mesh</span>
+      <button type="button" class="shape-search-trigger" id="shapeSearchOpen" title="Search mesh" aria-label="Search mesh" aria-expanded="false" aria-haspopup="dialog">🔍</button>
+      <select id="shape" aria-label="Mesh">
         <optgroup label="Procedural">
           <option value="bottle" selected>Water bottle</option>
           <option value="torusKnot">Torus knot</option>
@@ -270,6 +390,17 @@
         <span class="param-lock" data-lock="rough" tabindex="0" role="button" title="Click: lock/unlock for Space randomize">Rough</span>
         <input type="range" id="roughness" min="0.12" max="1" step="0.02" value="1" aria-label="Surface roughness" />
       </div>
+    </div>
+  </div>
+  <div id="shapeSearchModal" class="shape-search-modal" hidden aria-hidden="true">
+    <div class="shape-search-backdrop" id="shapeSearchBackdrop" aria-hidden="true"></div>
+    <div class="shape-search-dialog" role="dialog" aria-modal="true" aria-labelledby="shapeSearchTitle" tabindex="-1">
+      <div class="shape-search-head">
+        <h2 id="shapeSearchTitle">Search mesh</h2>
+        <button type="button" class="shape-search-close" id="shapeSearchClose" aria-label="Close mesh search">×</button>
+      </div>
+      <input type="search" id="shapeSearchInput" placeholder="Search mesh…" autocomplete="off" enterkeyhint="search" />
+      <div id="shapeSearchList" class="shape-search-list"></div>
     </div>
   </div>
   <script type="module" src="./src/main.js"></script>

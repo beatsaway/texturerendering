@@ -22,7 +22,7 @@ const paramLocks = {
   texture: false,
   groundTexture: false,
   effect: false,
-  shape: false,
+  mesh: false,
   spin: false,
   hemi: false,
   key: false,
@@ -680,6 +680,106 @@ function applyShape(type) {
 shapeSelect.addEventListener('change', () => applyShape(shapeSelect.value));
 placeMeshOnGround();
 
+const shapeSearchModal = document.getElementById('shapeSearchModal');
+const shapeSearchOpen = document.getElementById('shapeSearchOpen');
+const shapeSearchClose = document.getElementById('shapeSearchClose');
+const shapeSearchBackdrop = document.getElementById('shapeSearchBackdrop');
+const shapeSearchInput = document.getElementById('shapeSearchInput');
+const shapeSearchList = document.getElementById('shapeSearchList');
+
+function collectShapeSelectOptions() {
+  const out = [];
+  for (const child of shapeSelect.children) {
+    if (child.tagName === 'OPTGROUP') {
+      const group = child.label || '';
+      child.querySelectorAll('option').forEach((opt) => {
+        out.push({ value: opt.value, text: opt.textContent.trim(), group });
+      });
+    }
+  }
+  return out;
+}
+
+let shapeOptionsCache = null;
+function getShapeSearchOptions() {
+  if (!shapeOptionsCache) shapeOptionsCache = collectShapeSelectOptions();
+  return shapeOptionsCache;
+}
+
+function renderShapeSearchResults(query) {
+  const needle = query.trim().toLowerCase();
+  const opts = getShapeSearchOptions();
+  const filtered = needle
+    ? opts.filter(
+        (o) =>
+          o.text.toLowerCase().includes(needle) ||
+          o.value.toLowerCase().includes(needle) ||
+          o.group.toLowerCase().includes(needle)
+      )
+    : opts;
+  shapeSearchList.replaceChildren();
+  if (!filtered.length) {
+    const empty = document.createElement('div');
+    empty.className = 'shape-search-empty';
+    empty.textContent = 'No matches';
+    shapeSearchList.append(empty);
+    return;
+  }
+  for (const o of filtered) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'shape-search-row';
+    const t = document.createElement('span');
+    t.className = 'shape-search-row-text';
+    t.textContent = o.text;
+    const g = document.createElement('span');
+    g.className = 'shape-search-row-group';
+    g.textContent = o.group;
+    btn.append(t, g);
+    btn.addEventListener('click', () => {
+      shapeSelect.value = o.value;
+      shapeSelect.dispatchEvent(new Event('change', { bubbles: true }));
+      closeShapeSearch();
+    });
+    shapeSearchList.append(btn);
+  }
+}
+
+let shapeSearchReturnFocus = null;
+function openShapeSearch() {
+  shapeSearchReturnFocus = document.activeElement;
+  shapeSearchModal.hidden = false;
+  shapeSearchModal.setAttribute('aria-hidden', 'false');
+  shapeSearchOpen.setAttribute('aria-expanded', 'true');
+  shapeSearchInput.value = '';
+  renderShapeSearchResults('');
+  shapeSearchInput.focus({ preventScroll: true });
+}
+
+function closeShapeSearch() {
+  shapeSearchModal.hidden = true;
+  shapeSearchModal.setAttribute('aria-hidden', 'true');
+  shapeSearchOpen.setAttribute('aria-expanded', 'false');
+  const el = shapeSearchReturnFocus;
+  shapeSearchReturnFocus = null;
+  if (el && typeof el.focus === 'function') {
+    try {
+      el.focus({ preventScroll: true });
+    } catch {
+      el.focus();
+    }
+  }
+}
+
+shapeSearchOpen.addEventListener('click', (ev) => {
+  ev.preventDefault();
+  ev.stopPropagation();
+  openShapeSearch();
+});
+shapeSearchClose.addEventListener('click', () => closeShapeSearch());
+shapeSearchBackdrop.addEventListener('click', () => closeShapeSearch());
+shapeSearchInput.addEventListener('input', () => renderShapeSearchResults(shapeSearchInput.value));
+
 const groundMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.93, metalness: 0.03 });
 const ground = new THREE.Mesh(new THREE.CircleGeometry(4, 48), groundMat);
 ground.rotation.x = -Math.PI / 2;
@@ -788,7 +888,7 @@ function logUiStateToConsole() {
     texture: { value: textureSelect.value, label: texOpt?.text ?? '' },
     groundTexture: { value: groundTextureSelect.value, label: gndOpt?.text ?? '' },
     effect: effectSelect.value,
-    shape: shapeSelect.value,
+    mesh: shapeSelect.value,
     autoRotate: autoRotateEl.checked,
     hemiIntensity: parseFloat(hemiIntensityEl.value),
     dirIntensity: parseFloat(dirIntensityEl.value),
@@ -828,7 +928,7 @@ function randomizeAllHeaderControls() {
     gndChanged = true;
   }
   if (!paramLocks.effect) pickRandomSelectOption(effectSelect);
-  if (!paramLocks.shape) {
+  if (!paramLocks.mesh) {
     pickRandomSelectOption(shapeSelect);
     shapeChanged = true;
   }
@@ -851,6 +951,17 @@ function uiTargetIsTyping(t) {
 }
 
 window.addEventListener('keydown', (e) => {
+  if (!shapeSearchModal.hidden) {
+    if (e.code === 'Escape') {
+      e.preventDefault();
+      closeShapeSearch();
+      return;
+    }
+    if (e.code === 'Space' && document.activeElement !== shapeSearchInput) {
+      e.preventDefault();
+      return;
+    }
+  }
   if (e.repeat || e.ctrlKey || e.metaKey || e.altKey) return;
   const t = e.target;
   if (t && t.closest && t.closest('.param-lock')) return;
