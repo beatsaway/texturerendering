@@ -17,6 +17,51 @@ const dirIntensityEl = document.getElementById('dirIntensity');
 const fillIntensityEl = document.getElementById('fillIntensity');
 const roughnessEl = document.getElementById('roughness');
 
+/** When true, Space randomize skips that control. Toggle by clicking the parameter name. */
+const paramLocks = {
+  texture: false,
+  groundTexture: false,
+  effect: false,
+  shape: false,
+  spin: false,
+  hemi: false,
+  key: false,
+  fill: false,
+  rough: false
+};
+
+function syncParamLockUI(el) {
+  const key = el.dataset.lock;
+  if (!key || !Object.prototype.hasOwnProperty.call(paramLocks, key)) return;
+  el.classList.toggle('locked', paramLocks[key]);
+  el.title = paramLocks[key]
+    ? 'Locked: Space will not change this (click to unlock)'
+    : 'Click to lock (Space randomize will skip this)';
+}
+
+function toggleParamLock(el) {
+  const key = el.dataset.lock;
+  if (!key || !Object.prototype.hasOwnProperty.call(paramLocks, key)) return;
+  paramLocks[key] = !paramLocks[key];
+  syncParamLockUI(el);
+}
+
+document.querySelectorAll('.param-lock[data-lock]').forEach((el) => {
+  syncParamLockUI(el);
+  el.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    toggleParamLock(el);
+  });
+  el.addEventListener('keydown', (e) => {
+    if (e.code === 'Enter' || e.code === 'Space') {
+      e.preventDefault();
+      e.stopPropagation();
+      toggleParamLock(el);
+    }
+  });
+});
+
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.setSize(window.innerWidth, window.innerHeight, false);
@@ -446,26 +491,55 @@ function createShapeGeometry(type) {
   }
 }
 
-/** Kenney Pirate Kit — OBJ in `models/kenney-pirate/` (see License.txt). */
-const KENNEY_MODEL_BASE = 'models/kenney-pirate';
-const EXTERNAL_KENNEY = {
-  'kenney-bottle': 'bottle.obj',
-  'kenney-bottle-large': 'bottle-large.obj',
-  'kenney-chest': 'chest.obj',
-  'kenney-crate': 'crate.obj',
-  'kenney-cannon': 'cannon.obj',
-  'kenney-cannon-ball': 'cannon-ball.obj',
-  'kenney-ship-small': 'ship-small.obj',
-  'kenney-ship-pirate-small': 'ship-pirate-small.obj',
-  'kenney-boat-row-small': 'boat-row-small.obj',
-  'kenney-rocks-a': 'rocks-a.obj',
-  'kenney-tool-shovel': 'tool-shovel.obj',
-  'kenney-palm-straight': 'palm-straight.obj',
-  'kenney-flag-pirate': 'flag-pirate.obj',
-  'kenney-tower-complete-small': 'tower-complete-small.obj'
+/**
+ * External OBJ models (Kenney CC0 — see `models/kenney-pirate/License.txt` & `models/kenney-car/License.txt`).
+ * Values are paths relative to the site root (same folder as index.html).
+ */
+const EXTERNAL_OBJ_BY_ID = {
+  // —— Pirate kit (models/kenney-pirate/)
+  'kenney-bottle': 'models/kenney-pirate/bottle.obj',
+  'kenney-bottle-large': 'models/kenney-pirate/bottle-large.obj',
+  'kenney-chest': 'models/kenney-pirate/chest.obj',
+  'kenney-crate': 'models/kenney-pirate/crate.obj',
+  'kenney-cannon': 'models/kenney-pirate/cannon.obj',
+  'kenney-cannon-ball': 'models/kenney-pirate/cannon-ball.obj',
+  'kenney-ship-small': 'models/kenney-pirate/ship-small.obj',
+  'kenney-ship-pirate-small': 'models/kenney-pirate/ship-pirate-small.obj',
+  'kenney-boat-row-small': 'models/kenney-pirate/boat-row-small.obj',
+  'kenney-rocks-a': 'models/kenney-pirate/rocks-a.obj',
+  'kenney-tool-shovel': 'models/kenney-pirate/tool-shovel.obj',
+  'kenney-palm-straight': 'models/kenney-pirate/palm-straight.obj',
+  'kenney-flag-pirate': 'models/kenney-pirate/flag-pirate.obj',
+  'kenney-tower-complete-small': 'models/kenney-pirate/tower-complete-small.obj',
+  // —— Car kit (models/kenney-car/)
+  'car-sedan': 'models/kenney-car/sedan.obj',
+  'car-sedan-sports': 'models/kenney-car/sedan-sports.obj',
+  'car-hatchback-sports': 'models/kenney-car/hatchback-sports.obj',
+  'car-suv': 'models/kenney-car/suv.obj',
+  'car-suv-luxury': 'models/kenney-car/suv-luxury.obj',
+  'car-taxi': 'models/kenney-car/taxi.obj',
+  'car-police': 'models/kenney-car/police.obj',
+  'car-ambulance': 'models/kenney-car/ambulance.obj',
+  'car-firetruck': 'models/kenney-car/firetruck.obj',
+  'car-van': 'models/kenney-car/van.obj',
+  'car-truck': 'models/kenney-car/truck.obj',
+  'car-truck-flat': 'models/kenney-car/truck-flat.obj',
+  'car-garbage-truck': 'models/kenney-car/garbage-truck.obj',
+  'car-delivery': 'models/kenney-car/delivery.obj',
+  'car-delivery-flat': 'models/kenney-car/delivery-flat.obj',
+  'car-tractor': 'models/kenney-car/tractor.obj',
+  'car-tractor-shovel': 'models/kenney-car/tractor-shovel.obj',
+  'car-tractor-police': 'models/kenney-car/tractor-police.obj',
+  'car-race': 'models/kenney-car/race.obj',
+  'car-race-future': 'models/kenney-car/race-future.obj',
+  'car-kart': 'models/kenney-car/kart-oobi.obj',
+  'car-wheel-racing': 'models/kenney-car/wheel-racing.obj',
+  'car-cone': 'models/kenney-car/cone.obj',
+  'car-traffic-box': 'models/kenney-car/box.obj',
+  'car-debris-tire': 'models/kenney-car/debris-tire.obj'
 };
 
-const objLoader = new THREE.OBJLoader();
+const objLoader = new OBJLoader();
 
 function ensureGeometryAttributesForMerge(geometry) {
   if (!geometry.attributes.normal) geometry.computeVertexNormals();
@@ -487,9 +561,8 @@ function normalizeGeometryToMaxDimension(geometry, targetMax = 1.2) {
   geometry.computeBoundingBox();
 }
 
-async function loadKenneyMergedObj(filename) {
-  const url = `${KENNEY_MODEL_BASE}/${filename}`;
-  const root = await objLoader.loadAsync(url);
+async function loadKenneyMergedObj(relPath) {
+  const root = await objLoader.loadAsync(relPath);
   const geometries = [];
   root.updateWorldMatrix(true, true);
   root.traverse((child) => {
@@ -500,10 +573,10 @@ async function loadKenneyMergedObj(filename) {
       geometries.push(g);
     }
   });
-  if (!geometries.length) throw new Error(`No mesh in ${url}`);
+  if (!geometries.length) throw new Error(`No mesh in ${relPath}`);
   const merged = mergeGeometries(geometries, false);
   for (const g of geometries) g.dispose();
-  if (!merged) throw new Error(`mergeGeometries failed for ${url}`);
+  if (!merged) throw new Error(`mergeGeometries failed for ${relPath}`);
   merged.computeVertexNormals();
   normalizeGeometryToMaxDimension(merged, 1.2);
   return merged;
@@ -530,15 +603,15 @@ function placeMeshOnGround() {
 
 let shapeLoadGeneration = 0;
 
-function isExternalKenneyShape(type) {
-  return Object.prototype.hasOwnProperty.call(EXTERNAL_KENNEY, type);
+function isExternalObjShape(type) {
+  return Object.prototype.hasOwnProperty.call(EXTERNAL_OBJ_BY_ID, type);
 }
 
 function applyShape(type) {
-  if (isExternalKenneyShape(type)) {
+  const objPath = EXTERNAL_OBJ_BY_ID[type];
+  if (objPath) {
     const gen = ++shapeLoadGeneration;
-    const file = EXTERNAL_KENNEY[type];
-    loadKenneyMergedObj(file)
+    loadKenneyMergedObj(objPath)
       .then((geo) => {
         if (gen !== shapeLoadGeneration || shapeSelect.value !== type) {
           geo.dispose();
@@ -550,7 +623,7 @@ function applyShape(type) {
         mesh.rotation.set(0, 0, 0);
         placeMeshOnGround();
       })
-      .catch((err) => console.error('[Kenney OBJ]', file, err));
+      .catch((err) => console.error('[OBJ]', objPath, err));
     return;
   }
   shapeLoadGeneration += 1;
@@ -700,21 +773,33 @@ function pickRandomSelectOption(sel) {
 }
 
 function randomizeAllHeaderControls() {
-  pickRandomSelectOption(textureSelect);
-  pickRandomSelectOption(groundTextureSelect);
-  pickRandomSelectOption(effectSelect);
-  pickRandomSelectOption(shapeSelect);
-  autoRotateEl.checked = Math.random() < 0.5;
-  randRangeToStep(hemiIntensityEl);
-  randRangeToStep(dirIntensityEl);
-  randRangeToStep(fillIntensityEl);
-  randRangeToStep(roughnessEl);
+  let texChanged = false;
+  let gndChanged = false;
+  let shapeChanged = false;
+  if (!paramLocks.texture) {
+    pickRandomSelectOption(textureSelect);
+    texChanged = true;
+  }
+  if (!paramLocks.groundTexture) {
+    pickRandomSelectOption(groundTextureSelect);
+    gndChanged = true;
+  }
+  if (!paramLocks.effect) pickRandomSelectOption(effectSelect);
+  if (!paramLocks.shape) {
+    pickRandomSelectOption(shapeSelect);
+    shapeChanged = true;
+  }
+  if (!paramLocks.spin) autoRotateEl.checked = Math.random() < 0.5;
+  if (!paramLocks.hemi) randRangeToStep(hemiIntensityEl);
+  if (!paramLocks.key) randRangeToStep(dirIntensityEl);
+  if (!paramLocks.fill) randRangeToStep(fillIntensityEl);
+  if (!paramLocks.rough) randRangeToStep(roughnessEl);
   syncLighting();
   material.roughness = parseFloat(roughnessEl.value);
-  applyTexture(textureSelect.value);
-  applyGroundTexture(groundTextureSelect.value);
+  if (texChanged) applyTexture(textureSelect.value);
+  if (gndChanged) applyGroundTexture(groundTextureSelect.value);
   pencilPass.enabled = usePencil();
-  applyShape(shapeSelect.value);
+  if (shapeChanged) applyShape(shapeSelect.value);
 }
 
 function uiTargetIsTyping(t) {
@@ -725,6 +810,7 @@ function uiTargetIsTyping(t) {
 window.addEventListener('keydown', (e) => {
   if (e.repeat || e.ctrlKey || e.metaKey || e.altKey) return;
   const t = e.target;
+  if (t && t.closest && t.closest('.param-lock')) return;
   if (uiTargetIsTyping(t)) return;
   if (e.code === 'Space') {
     e.preventDefault();

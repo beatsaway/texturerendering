@@ -28,7 +28,24 @@
       line-height: 1.15;
       max-width: calc(100% - 12px);
     }
-    .ui label { display: flex; align-items: center; gap: 4px; color: #8b93a2; white-space: nowrap; }
+    .ui-field {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      color: #8b93a2;
+      white-space: nowrap;
+    }
+    .param-lock {
+      cursor: pointer;
+      user-select: none;
+      border-bottom: 1px dotted transparent;
+      color: #8b93a2;
+    }
+    .param-lock:hover { color: #b8c0d0; }
+    .param-lock.locked {
+      color: #d4a43a;
+      border-bottom-color: rgba(212, 164, 58, 0.55);
+    }
     select {
       background: #252a34;
       color: #e4e6eb;
@@ -56,7 +73,7 @@
       margin-top: 1px;
       border-top: 1px solid rgba(255, 255, 255, 0.06);
     }
-    .light-panel label {
+    .light-field {
       display: flex;
       flex-direction: column;
       gap: 0;
@@ -66,6 +83,7 @@
       min-width: 0;
       text-transform: uppercase;
     }
+    .light-field .param-lock { font-size: 9px; }
     .light-panel input[type="range"] {
       width: 88px;
       max-width: 22vw;
@@ -84,10 +102,10 @@
 </head>
 <body>
   <canvas id="c"></canvas>
-  <div class="ui" title="C: log to console · Space: randomize all controls (when not typing)">
-    <label title="Mesh albedo / pattern">
-      Texture
-      <select id="texture">
+  <div class="ui" title="C: log to console · Space: randomize unlocked controls · Click a parameter name to lock/unlock">
+    <div class="ui-field" title="Mesh albedo / pattern">
+      <span class="param-lock" data-lock="texture" tabindex="0" role="button" title="Click: lock/unlock for Space randomize">Texture</span>
+      <select id="texture" aria-label="Texture">
         <option value="solid">Standard (solid color, no map)</option>
         <option value="checker">Checker</option>
         <option value="noise">Noise / grain</option>
@@ -100,10 +118,10 @@
         <option value="stain">Stain / blotches</option>
         <option value="weave">Cross-weave</option>
       </select>
-    </label>
-    <label title="Ground plane (circle under the mesh)">
-      Table
-      <select id="groundTexture">
+    </div>
+    <div class="ui-field" title="Ground plane (circle under the mesh)">
+      <span class="param-lock" data-lock="groundTexture" tabindex="0" role="button" title="Click: lock/unlock for Space randomize">Table</span>
+      <select id="groundTexture" aria-label="Table texture">
         <option value="solid">Standard (solid color, no map)</option>
         <option value="checker">Checker</option>
         <option value="noise">Noise / grain</option>
@@ -116,17 +134,17 @@
         <option value="stain">Stain / blotches</option>
         <option value="weave">Cross-weave</option>
       </select>
-    </label>
-    <label>
-      Effect
-      <select id="effect">
+    </div>
+    <div class="ui-field">
+      <span class="param-lock" data-lock="effect" tabindex="0" role="button" title="Click: lock/unlock for Space randomize">Effect</span>
+      <select id="effect" aria-label="Effect">
         <option value="pencil" selected>Pencil sketch (post-process)</option>
         <option value="standard">Standard lit (no post)</option>
       </select>
-    </label>
-    <label title="Procedural shapes or Kenney Pirate Kit OBJ (models/kenney-pirate)">
-      Shape
-      <select id="shape">
+    </div>
+    <div class="ui-field" title="Procedural shapes or Kenney OBJ kits (models/kenney-pirate, models/kenney-car)">
+      <span class="param-lock" data-lock="shape" tabindex="0" role="button" title="Click: lock/unlock for Space randomize">Shape</span>
+      <select id="shape" aria-label="Shape">
         <optgroup label="Procedural">
           <option value="bottle" selected>Water bottle</option>
           <option value="torusKnot">Torus knot</option>
@@ -158,29 +176,56 @@
           <option value="kenney-flag-pirate">Pirate flag</option>
           <option value="kenney-tower-complete-small">Tower (small)</option>
         </optgroup>
+        <optgroup label="Kenney Car Kit (CC0 · OBJ)">
+          <option value="car-sedan">Sedan</option>
+          <option value="car-sedan-sports">Sedan (sports)</option>
+          <option value="car-hatchback-sports">Hatchback (sports)</option>
+          <option value="car-suv">SUV</option>
+          <option value="car-suv-luxury">SUV (luxury)</option>
+          <option value="car-taxi">Taxi</option>
+          <option value="car-police">Police car</option>
+          <option value="car-ambulance">Ambulance</option>
+          <option value="car-firetruck">Fire truck</option>
+          <option value="car-van">Van</option>
+          <option value="car-truck">Truck</option>
+          <option value="car-truck-flat">Truck (flatbed)</option>
+          <option value="car-garbage-truck">Garbage truck</option>
+          <option value="car-delivery">Delivery van</option>
+          <option value="car-delivery-flat">Delivery (flat)</option>
+          <option value="car-tractor">Tractor</option>
+          <option value="car-tractor-shovel">Tractor + shovel</option>
+          <option value="car-tractor-police">Tractor (police)</option>
+          <option value="car-race">Race car</option>
+          <option value="car-race-future">Race car (future)</option>
+          <option value="car-kart">Kart</option>
+          <option value="car-wheel-racing">Wheel (racing)</option>
+          <option value="car-cone">Traffic cone</option>
+          <option value="car-traffic-box">Traffic barrier box</option>
+          <option value="car-debris-tire">Debris: tire</option>
+        </optgroup>
       </select>
-    </label>
-    <label>
-      <input type="checkbox" id="autoRotate" title="Slow Y spin" />
-      Spin
-    </label>
+    </div>
+    <div class="ui-field">
+      <span class="param-lock" data-lock="spin" tabindex="0" role="button" title="Click: lock/unlock for Space randomize">Spin</span>
+      <input type="checkbox" id="autoRotate" title="Slow Y spin" aria-label="Auto rotate mesh" />
+    </div>
     <div class="light-panel" title="Lift dark sides for clearer texture">
-      <label title="Hemisphere sky + ground">
-        <span>Hemi</span>
-        <input type="range" id="hemiIntensity" min="0" max="1.6" step="0.05" value="1.6" />
-      </label>
-      <label title="Main directional">
-        <span>Key</span>
-        <input type="range" id="dirIntensity" min="0.15" max="2.2" step="0.05" value="2.2" />
-      </label>
-      <label title="Fill from opposite side">
-        <span>Fill</span>
-        <input type="range" id="fillIntensity" min="0" max="0.85" step="0.02" value="0" />
-      </label>
-      <label title="Mesh only — higher = softer specular">
-        <span>Rough</span>
-        <input type="range" id="roughness" min="0.12" max="1" step="0.02" value="1" />
-      </label>
+      <div class="light-field" title="Hemisphere sky + ground">
+        <span class="param-lock" data-lock="hemi" tabindex="0" role="button" title="Click: lock/unlock for Space randomize">Hemi</span>
+        <input type="range" id="hemiIntensity" min="0" max="1.6" step="0.05" value="1.6" aria-label="Hemisphere intensity" />
+      </div>
+      <div class="light-field" title="Main directional">
+        <span class="param-lock" data-lock="key" tabindex="0" role="button" title="Click: lock/unlock for Space randomize">Key</span>
+        <input type="range" id="dirIntensity" min="0.15" max="2.2" step="0.05" value="2.2" aria-label="Key light intensity" />
+      </div>
+      <div class="light-field" title="Fill from opposite side">
+        <span class="param-lock" data-lock="fill" tabindex="0" role="button" title="Click: lock/unlock for Space randomize">Fill</span>
+        <input type="range" id="fillIntensity" min="0" max="0.85" step="0.02" value="0" aria-label="Fill light intensity" />
+      </div>
+      <div class="light-field" title="Mesh only — higher = softer specular">
+        <span class="param-lock" data-lock="rough" tabindex="0" role="button" title="Click: lock/unlock for Space randomize">Rough</span>
+        <input type="range" id="roughness" min="0.12" max="1" step="0.02" value="1" aria-label="Surface roughness" />
+      </div>
     </div>
   </div>
   <script type="module" src="./src/main.js"></script>
