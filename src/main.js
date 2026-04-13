@@ -492,7 +492,7 @@ function createShapeGeometry(type) {
 }
 
 /**
- * External OBJ models (Kenney CC0 — see `models/kenney-pirate/License.txt` & `models/kenney-car/License.txt`).
+ * External OBJ models (Kenney CC0 — see `License.txt` under each `models/kenney-*` folder).
  * Values are paths relative to the site root (same folder as index.html).
  */
 const EXTERNAL_OBJ_BY_ID = {
@@ -536,7 +536,50 @@ const EXTERNAL_OBJ_BY_ID = {
   'car-wheel-racing': 'models/kenney-car/wheel-racing.obj',
   'car-cone': 'models/kenney-car/cone.obj',
   'car-traffic-box': 'models/kenney-car/box.obj',
-  'car-debris-tire': 'models/kenney-car/debris-tire.obj'
+  'car-debris-tire': 'models/kenney-car/debris-tire.obj',
+  // —— Food kit (models/kenney-food/)
+  'food-apple': 'models/kenney-food/apple.obj',
+  'food-banana': 'models/kenney-food/banana.obj',
+  'food-avocado': 'models/kenney-food/avocado.obj',
+  'food-burger': 'models/kenney-food/burger.obj',
+  'food-burger-double': 'models/kenney-food/burger-double.obj',
+  'food-hot-dog': 'models/kenney-food/hot-dog.obj',
+  'food-fries': 'models/kenney-food/fries.obj',
+  'food-pizza': 'models/kenney-food/pizza.obj',
+  'food-donut': 'models/kenney-food/donut.obj',
+  'food-donut-sprinkles': 'models/kenney-food/donut-sprinkles.obj',
+  'food-cake-birthday': 'models/kenney-food/cake-birthday.obj',
+  'food-cupcake': 'models/kenney-food/cupcake.obj',
+  'food-cookie': 'models/kenney-food/cookie.obj',
+  'food-croissant': 'models/kenney-food/croissant.obj',
+  'food-bread': 'models/kenney-food/bread.obj',
+  'food-cheese': 'models/kenney-food/cheese.obj',
+  'food-egg': 'models/kenney-food/egg.obj',
+  'food-sushi-salmon': 'models/kenney-food/sushi-salmon.obj',
+  'food-sushi-egg': 'models/kenney-food/sushi-egg.obj',
+  'food-taco': 'models/kenney-food/taco.obj',
+  'food-watermelon': 'models/kenney-food/watermelon.obj',
+  'food-strawberry': 'models/kenney-food/strawberry.obj',
+  'food-sandwich': 'models/kenney-food/sandwich.obj',
+  'food-sub': 'models/kenney-food/sub.obj',
+  'food-salad': 'models/kenney-food/salad.obj',
+  'food-sundae': 'models/kenney-food/sundae.obj',
+  'food-waffle': 'models/kenney-food/waffle.obj',
+  'food-pancakes': 'models/kenney-food/pancakes.obj',
+  'food-ice-cream': 'models/kenney-food/ice-cream.obj',
+  'food-soda-can': 'models/kenney-food/soda-can.obj',
+  'food-wine-red': 'models/kenney-food/wine-red.obj',
+  'food-cup-coffee': 'models/kenney-food/cup-coffee.obj',
+  'food-turkey': 'models/kenney-food/turkey.obj',
+  'food-bacon': 'models/kenney-food/bacon.obj',
+  'food-fish': 'models/kenney-food/fish.obj',
+  'food-plate-dinner': 'models/kenney-food/plate-dinner.obj',
+  'food-bowl-soup': 'models/kenney-food/bowl-soup.obj',
+  'food-carrot': 'models/kenney-food/carrot.obj',
+  'food-broccoli': 'models/kenney-food/broccoli.obj',
+  'food-chinese': 'models/kenney-food/chinese.obj',
+  'food-dim-sum': 'models/kenney-food/dim-sum.obj',
+  'food-rolling-pin': 'models/kenney-food/rollingPin.obj'
 };
 
 const objLoader = new OBJLoader();
