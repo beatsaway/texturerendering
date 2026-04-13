@@ -3,6 +3,8 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { PencilLinesPass } from './PencilLinesPass.js';
+import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
 const canvas = document.getElementById('c');
 const textureSelect = document.getElementById('texture');
@@ -444,6 +446,69 @@ function createShapeGeometry(type) {
   }
 }
 
+/** Kenney Pirate Kit — OBJ in `models/kenney-pirate/` (see License.txt). */
+const KENNEY_MODEL_BASE = 'models/kenney-pirate';
+const EXTERNAL_KENNEY = {
+  'kenney-bottle': 'bottle.obj',
+  'kenney-bottle-large': 'bottle-large.obj',
+  'kenney-chest': 'chest.obj',
+  'kenney-crate': 'crate.obj',
+  'kenney-cannon': 'cannon.obj',
+  'kenney-cannon-ball': 'cannon-ball.obj',
+  'kenney-ship-small': 'ship-small.obj',
+  'kenney-ship-pirate-small': 'ship-pirate-small.obj',
+  'kenney-boat-row-small': 'boat-row-small.obj',
+  'kenney-rocks-a': 'rocks-a.obj',
+  'kenney-tool-shovel': 'tool-shovel.obj',
+  'kenney-palm-straight': 'palm-straight.obj',
+  'kenney-flag-pirate': 'flag-pirate.obj',
+  'kenney-tower-complete-small': 'tower-complete-small.obj'
+};
+
+const objLoader = new THREE.OBJLoader();
+
+function ensureGeometryAttributesForMerge(geometry) {
+  if (!geometry.attributes.normal) geometry.computeVertexNormals();
+  const pos = geometry.attributes.position;
+  if (pos && !geometry.attributes.uv) {
+    const uvs = new Float32Array(pos.count * 2);
+    geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+  }
+}
+
+function normalizeGeometryToMaxDimension(geometry, targetMax = 1.2) {
+  geometry.computeBoundingBox();
+  const bb = geometry.boundingBox;
+  const size = new THREE.Vector3();
+  bb.getSize(size);
+  const maxDim = Math.max(size.x, size.y, size.z, 1e-6);
+  const s = targetMax / maxDim;
+  geometry.scale(s, s, s);
+  geometry.computeBoundingBox();
+}
+
+async function loadKenneyMergedObj(filename) {
+  const url = `${KENNEY_MODEL_BASE}/${filename}`;
+  const root = await objLoader.loadAsync(url);
+  const geometries = [];
+  root.updateWorldMatrix(true, true);
+  root.traverse((child) => {
+    if (child.isMesh && child.geometry) {
+      const g = child.geometry.clone();
+      g.applyMatrix4(child.matrixWorld);
+      ensureGeometryAttributesForMerge(g);
+      geometries.push(g);
+    }
+  });
+  if (!geometries.length) throw new Error(`No mesh in ${url}`);
+  const merged = mergeGeometries(geometries, false);
+  for (const g of geometries) g.dispose();
+  if (!merged) throw new Error(`mergeGeometries failed for ${url}`);
+  merged.computeVertexNormals();
+  normalizeGeometryToMaxDimension(merged, 1.2);
+  return merged;
+}
+
 const material = new THREE.MeshStandardMaterial({
   color: 0xc9b8a4,
   roughness: parseFloat(roughnessEl.value),
@@ -463,7 +528,32 @@ function placeMeshOnGround() {
   controls.target.set(0, mesh.position.y + cy, 0);
 }
 
+let shapeLoadGeneration = 0;
+
+function isExternalKenneyShape(type) {
+  return Object.prototype.hasOwnProperty.call(EXTERNAL_KENNEY, type);
+}
+
 function applyShape(type) {
+  if (isExternalKenneyShape(type)) {
+    const gen = ++shapeLoadGeneration;
+    const file = EXTERNAL_KENNEY[type];
+    loadKenneyMergedObj(file)
+      .then((geo) => {
+        if (gen !== shapeLoadGeneration || shapeSelect.value !== type) {
+          geo.dispose();
+          return;
+        }
+        const prev = mesh.geometry;
+        mesh.geometry = geo;
+        prev.dispose();
+        mesh.rotation.set(0, 0, 0);
+        placeMeshOnGround();
+      })
+      .catch((err) => console.error('[Kenney OBJ]', file, err));
+    return;
+  }
+  shapeLoadGeneration += 1;
   const prev = mesh.geometry;
   mesh.geometry = createShapeGeometry(type);
   prev.dispose();
