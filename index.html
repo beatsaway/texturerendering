@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" href="./favicon.ico" sizes="any" />
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+  <title>Three.js — mesh textures &amp; pencil post-processing</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; overflow: hidden; background: #111; font-family: system-ui, sans-serif; }
+    #c { display: block; width: 100%; height: 100%; }
+    .ui {
+      position: fixed;
+      top: 6px;
+      left: 6px;
+      z-index: 10;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 3px 8px;
+      align-items: center;
+      padding: 4px 8px;
+      background: rgba(18, 20, 26, 0.82);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      border-radius: 5px;
+      color: #c8ccd4;
+      font-size: 11px;
+      line-height: 1.15;
+      max-width: calc(100% - 12px);
+    }
+    .ui label { display: flex; align-items: center; gap: 4px; color: #8b93a2; white-space: nowrap; }
+    select {
+      background: #252a34;
+      color: #e4e6eb;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-size: 11px;
+      cursor: pointer;
+      max-width: 11rem;
+    }
+    input[type="checkbox"] {
+      width: 12px;
+      height: 12px;
+      margin: 0;
+      accent-color: #5a7ab0;
+      cursor: pointer;
+    }
+    .light-panel {
+      flex-basis: 100%;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 3px 10px;
+      align-items: flex-end;
+      padding-top: 3px;
+      margin-top: 1px;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .light-panel label {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      font-size: 9px;
+      letter-spacing: 0.02em;
+      color: #7a8290;
+      min-width: 0;
+      text-transform: uppercase;
+    }
+    .light-panel input[type="range"] {
+      width: 88px;
+      max-width: 22vw;
+      height: 12px;
+      margin: 0;
+    }
+  </style>
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.183.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.183.0/examples/jsm/"
+    }
+  }
+  </script>
+</head>
+<body>
+  <canvas id="c"></canvas>
+  <div class="ui" title="Press C (not in a control) to log settings in the console">
+    <label title="Mesh albedo / pattern">
+      Texture
+      <select id="texture">
+        <option value="checker">Checker</option>
+        <option value="noise">Noise / grain</option>
+        <option value="stripes" selected>Diagonal stripes</option>
+        <option value="dots">Stipple dots</option>
+        <option value="wood">Wood-like lines</option>
+        <option value="longWavy">Long wavy (smooth)</option>
+        <option value="discreteWavy">Discrete wavy (bands)</option>
+        <option value="bubbly">Bubbly</option>
+        <option value="stain">Stain / blotches</option>
+        <option value="weave">Cross-weave</option>
+      </select>
+    </label>
+    <label title="Ground plane (circle under the mesh)">
+      Table
+      <select id="groundTexture">
+        <option value="checker">Checker</option>
+        <option value="noise">Noise / grain</option>
+        <option value="stripes" selected>Diagonal stripes</option>
+        <option value="dots">Stipple dots</option>
+        <option value="wood">Wood-like lines</option>
+        <option value="longWavy">Long wavy (smooth)</option>
+        <option value="discreteWavy">Discrete wavy (bands)</option>
+        <option value="bubbly">Bubbly</option>
+        <option value="stain">Stain / blotches</option>
+        <option value="weave">Cross-weave</option>
+      </select>
+    </label>
+    <label>
+      Effect
+      <select id="effect">
+        <option value="pencil" selected>Pencil sketch (post-process)</option>
+        <option value="standard">Standard lit (no post)</option>
+      </select>
+    </label>
+    <label title="Procedural geometry only">
+      Shape
+      <select id="shape">
+        <option value="bottle" selected>Water bottle</option>
+        <option value="torusKnot">Torus knot</option>
+        <option value="box">Box</option>
+        <option value="cylinder">Cylinder</option>
+        <option value="cone">Cone</option>
+        <option value="pyramid">Square pyramid (4 sides)</option>
+        <option value="hexPrism">Hexagonal prism</option>
+        <option value="octahedron">Octahedron</option>
+        <option value="tetrahedron">Tetrahedron</option>
+        <option value="dodecahedron">Dodecahedron</option>
+        <option value="torus">Torus (donut)</option>
+        <option value="capsule">Capsule</option>
+        <option value="icosahedron">Icosahedron</option>
+      </select>
+    </label>
+    <label>
+      <input type="checkbox" id="autoRotate" title="Slow Y spin" />
+      Spin
+    </label>
+    <div class="light-panel" title="Lift dark sides for clearer texture">
+      <label title="Hemisphere sky + ground">
+        <span>Hemi</span>
+        <input type="range" id="hemiIntensity" min="0" max="1.6" step="0.05" value="1.6" />
+      </label>
+      <label title="Main directional">
+        <span>Key</span>
+        <input type="range" id="dirIntensity" min="0.15" max="2.2" step="0.05" value="2.2" />
+      </label>
+      <label title="Fill from opposite side">
+        <span>Fill</span>
+        <input type="range" id="fillIntensity" min="0" max="0.85" step="0.02" value="0" />
+      </label>
+      <label title="Mesh only — higher = softer specular">
+        <span>Rough</span>
+        <input type="range" id="roughness" min="0.12" max="1" step="0.02" value="1" />
+      </label>
+    </div>
+  </div>
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>
