@@ -374,6 +374,7 @@ function makeWeaveTexture() {
 }
 
 const textureFactories = {
+  solid: () => null,
   checker: makeCheckerTexture,
   noise: makeNoiseTexture,
   stripes: makeStripeTexture,
@@ -498,6 +499,7 @@ let currentMap = null;
 
 /** When switching texture, sliders snap to these defaults (tuned per pattern). */
 const TEXTURE_SLIDER_PRESETS = {
+  solid: { hemiIntensity: 1.05, dirIntensity: 1.2, fillIntensity: 0.45, roughness: 0.65 },
   checker: { hemiIntensity: 0, dirIntensity: 1, fillIntensity: 0.38, roughness: 0.56 },
   noise: { hemiIntensity: 1.6, dirIntensity: 1.95, fillIntensity: 0.38, roughness: 0.56 },
   stripes: { hemiIntensity: 1.6, dirIntensity: 2.2, fillIntensity: 0, roughness: 1 },
@@ -589,12 +591,57 @@ function logUiStateToConsole() {
   });
 }
 
-window.addEventListener('keydown', (e) => {
-  if (e.repeat || e.code !== 'KeyC' || e.ctrlKey || e.metaKey || e.altKey) return;
-  const t = e.target;
+function randRangeToStep(el) {
+  const min = parseFloat(el.min);
+  const max = parseFloat(el.max);
+  const step = parseFloat(el.step);
+  const s = Number.isFinite(step) && step > 0 ? step : 0.01;
+  const steps = [];
+  for (let v = min; v <= max + s * 0.25; v += s) {
+    steps.push(Math.min(max, +v.toFixed(6)));
+  }
+  if (!steps.length) steps.push(min);
+  el.value = String(steps[Math.floor(Math.random() * steps.length)]);
+}
+
+function pickRandomSelectOption(sel) {
+  const i = Math.floor(Math.random() * sel.options.length);
+  sel.selectedIndex = i;
+}
+
+function randomizeAllHeaderControls() {
+  pickRandomSelectOption(textureSelect);
+  pickRandomSelectOption(groundTextureSelect);
+  pickRandomSelectOption(effectSelect);
+  pickRandomSelectOption(shapeSelect);
+  autoRotateEl.checked = Math.random() < 0.5;
+  randRangeToStep(hemiIntensityEl);
+  randRangeToStep(dirIntensityEl);
+  randRangeToStep(fillIntensityEl);
+  randRangeToStep(roughnessEl);
+  syncLighting();
+  material.roughness = parseFloat(roughnessEl.value);
+  applyTexture(textureSelect.value);
+  applyGroundTexture(groundTextureSelect.value);
+  pencilPass.enabled = usePencil();
+  applyShape(shapeSelect.value);
+}
+
+function uiTargetIsTyping(t) {
   const tag = t && t.tagName;
-  if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || t?.isContentEditable) return;
-  logUiStateToConsole();
+  return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || t?.isContentEditable;
+}
+
+window.addEventListener('keydown', (e) => {
+  if (e.repeat || e.ctrlKey || e.metaKey || e.altKey) return;
+  const t = e.target;
+  if (uiTargetIsTyping(t)) return;
+  if (e.code === 'Space') {
+    e.preventDefault();
+    randomizeAllHeaderControls();
+    return;
+  }
+  if (e.code === 'KeyC') logUiStateToConsole();
 });
 
 const clock = new THREE.Clock();

@@ -84,10 +84,11 @@
 </head>
 <body>
   <canvas id="c"></canvas>
-  <div class="ui" title="Press C (not in a control) to log settings in the console">
+  <div class="ui" title="C: log to console · Space: randomize all controls (when not typing)">
     <label title="Mesh albedo / pattern">
       Texture
       <select id="texture">
+        <option value="solid">Standard (solid color, no map)</option>
         <option value="checker">Checker</option>
         <option value="noise">Noise / grain</option>
         <option value="stripes" selected>Diagonal stripes</option>
@@ -103,6 +104,7 @@
     <label title="Ground plane (circle under the mesh)">
       Table
       <select id="groundTexture">
+        <option value="solid">Standard (solid color, no map)</option>
         <option value="checker">Checker</option>
         <option value="noise">Noise / grain</option>
         <option value="stripes" selected>Diagonal stripes</option>
